@@ -9,7 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.example.mynotesapp.db.DatabaseContract
+import com.example.mynotesapp.db.DatabaseContract.NoteColumns
 import com.example.mynotesapp.db.NoteHelper
 import com.example.mynotesapp.entity.Note
 import kotlinx.android.synthetic.main.activity_note_add_update.*
@@ -94,8 +94,8 @@ class NoteAddUpdateActivity : AppCompatActivity(), View.OnClickListener {
             intent.putExtra(EXTRA_POSITION, position)
 
             val values = ContentValues()
-            values.put(DatabaseContract.NoteColumns.TITLE, title)
-            values.put(DatabaseContract.NoteColumns.DESCRIPTION, description)
+            values.put(NoteColumns.TITLE, title)
+            values.put(NoteColumns.DESCRIPTION, description)
 
             if (isEdit) {
                 val result = noteHelper.update(note?.id.toString(), values)
@@ -107,7 +107,7 @@ class NoteAddUpdateActivity : AppCompatActivity(), View.OnClickListener {
                 }
             } else {
                 note?.date = getCurrentDate()
-                values.put(DatabaseContract.NoteColumns.DATE, getCurrentDate())
+                values.put(NoteColumns.DATE, getCurrentDate())
                 val result = noteHelper.insert(values)
 
                 if (result > 0) {

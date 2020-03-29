@@ -48,18 +48,22 @@ class NoteHelper(context: Context) {
     }
 
     fun queryById(id: String): Cursor {
+        open()
         return database.query(DATABASE_TABLE, null, "$_ID = ?", arrayOf(id), null, null, null, null)
     }
 
-    fun insert(values: ContentValues?): Long {
+    fun insert(values: ContentValues): Long {
+        open()
         return database.insert(DATABASE_TABLE, null, values)
     }
 
-    fun update(id: String, values: ContentValues?): Int {
+    fun update(id: String, values: ContentValues): Int {
+        open()
         return database.update(DATABASE_TABLE, values, "$_ID = ?", arrayOf(id))
     }
 
     fun deleteById(id: String): Int {
+        open()
         return database.delete(DATABASE_TABLE, "$_ID = '$id'", null)
     }
 }
