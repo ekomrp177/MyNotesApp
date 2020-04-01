@@ -1,11 +1,15 @@
 package com.example.mynotesapp
 
 import android.content.Intent
+import android.database.ContentObserver
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mynotesapp.adapter.NoteAdapter
+import com.example.mynotesapp.db.DatabaseContract.NoteColumns.Companion.CONTENT_URI
 import com.example.mynotesapp.db.NoteHelper
 import com.example.mynotesapp.entity.Note
 import com.example.mynotesapp.helper.MappingHelper
@@ -22,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var adapter: NoteAdapter
-    private lateinit var noteHelper: NoteHelper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -38,8 +41,16 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, NoteAddUpdateActivity.REQUEST_ADD)
         }
 
-        noteHelper = NoteHelper.getInstance(applicationContext)
-        noteHelper.open()
+        val handlerThread = HandlerThread("DataObserver")
+        handlerThread.start()
+        val handler = Handler(handlerThread.looper)
+        val myObserver = object : ContentObserver(handler) {
+            override fun onChange(self: Boolean) {
+                loadNotesAsync()
+            }
+        }
+
+        contentResolver.registerContentObserver(CONTENT_URI, true, myObserver)
 
         if (savedInstanceState == null) {
             loadNotesAsync()
@@ -88,16 +99,11 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(rv_notes, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        noteHelper.close()
-    }
-
     private fun loadNotesAsync() {
         GlobalScope.launch(Dispatchers.Main) {
             progressbar.visibility = View.VISIBLE
             val deferredNotes = async(Dispatchers.IO) {
-                val cursor = noteHelper.queryAll()
+                val cursor = contentResolver?.query(CONTENT_URI, null, null, null, null)
                 MappingHelper.mapCursorToArrayList(cursor)
             }
             progressbar.visibility = View.INVISIBLE
